@@ -59,15 +59,13 @@ def process_files():
         
         # Create temporary directory for processing
         with tempfile.TemporaryDirectory() as temp_dir:
-            # Save uploaded files
+            # Save uploaded Excel file
             excel_filename = secure_filename(excel_file.filename)
-            word_filename = secure_filename(word_file.filename)
-            
             excel_path = os.path.join(temp_dir, excel_filename)
-            word_path = os.path.join(temp_dir, word_filename)
-            
             excel_file.save(excel_path)
-            word_file.save(word_path)
+            
+            # Use fixed Word template from project
+            word_template_path = os.path.join('templates_word', 'modelo_padrao.docx')
             
             # Process Excel file - extract all rows
             excel_processor = ExcelProcessor()
@@ -91,22 +89,23 @@ def process_files():
             
             # Process Word file with all calculated data and worksheet name
             word_processor = WordProcessor()
-            output_path = os.path.join(temp_dir, 'output_' + word_filename)
+            output_filename = f'resultado_{excel_filename.replace(".xlsx", ".docx")}'
+            output_path = os.path.join(temp_dir, output_filename)
             
-            success = word_processor.fill_template(word_path, calculated_data_list, output_path, worksheet_name)
+            success = word_processor.fill_template(word_template_path, calculated_data_list, output_path, worksheet_name)
             
             if not success:
                 flash('Erro ao processar arquivo Word. Verifique se o template possui uma tabela.', 'error')
                 return redirect(url_for('index'))
             
             # Copy output file to uploads folder for download
-            final_output_path = os.path.join(app.config['UPLOAD_FOLDER'], 'resultado_' + word_filename)
+            final_output_path = os.path.join(app.config['UPLOAD_FOLDER'], output_filename)
             shutil.copy2(output_path, final_output_path)
             
             flash('Arquivo processado com sucesso!', 'success')
             return send_file(final_output_path, 
                            as_attachment=True, 
-                           download_name=f'resultado_{word_filename}')
+                           download_name=output_filename)
     
     except Exception as e:
         app.logger.error(f"Erro durante processamento: {str(e)}")

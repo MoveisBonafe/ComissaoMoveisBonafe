@@ -53,7 +53,7 @@
                     <div class="card-header bg-primary text-white">
                         <h4 class="card-title mb-0">
                             <i data-feather="upload" class="me-2"></i>
-                            Upload de Arquivos
+                            Upload de Planilha Excel
                         </h4>
                     </div>
                     <div class="card-body">
@@ -81,26 +81,13 @@
                                 </div>
                             </div>
 
-                            <!-- Word File Upload -->
+                            <!-- Template Word Info -->
                             <div class="mb-4">
-                                <label for="word_file" class="form-label fw-bold">
+                                <div class="alert alert-info">
                                     <i data-feather="file-text" class="me-2"></i>
-                                    Template Word (.docx)
-                                </label>
-                                <div class="input-group">
-                                    <input type="file" 
-                                           class="form-control" 
-                                           id="word_file" 
-                                           name="word_file" 
-                                           accept=".docx"
-                                           required>
-                                    <span class="input-group-text">
-                                        <i data-feather="file-text" class="text-info"></i>
-                                    </span>
-                                </div>
-                                <div class="form-text">
-                                    <i data-feather="info" class="me-1"></i>
-                                    O template deve conter uma tabela que será preenchida automaticamente
+                                    <strong>Template Word:</strong> Usando modelo padrão do sistema
+                                    <br>
+                                    <small class="text-muted">O template está incluído no projeto e será usado automaticamente</small>
                                 </div>
                             </div>
 
@@ -108,7 +95,7 @@
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
                                     <i data-feather="play" class="me-2"></i>
-                                    Processar Arquivos
+                                    Processar Planilha
                                 </button>
                             </div>
                         </form>
