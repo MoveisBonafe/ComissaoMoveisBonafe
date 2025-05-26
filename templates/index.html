@@ -58,18 +58,19 @@
                     </div>
                     <div class="card-body">
                         <form id="uploadForm" method="POST" action="{{ url_for('process_files') }}" enctype="multipart/form-data">
-                            <!-- Excel File Upload -->
+                            <!-- Excel Files Upload -->
                             <div class="mb-4">
-                                <label for="excel_file" class="form-label fw-bold">
+                                <label for="excel_files" class="form-label fw-bold">
                                     <i data-feather="grid" class="me-2"></i>
-                                    Arquivo Excel (.xlsx)
+                                    Arquivos Excel (.xlsx)
                                 </label>
                                 <div class="input-group">
                                     <input type="file" 
                                            class="form-control" 
-                                           id="excel_file" 
-                                           name="excel_file" 
+                                           id="excel_files" 
+                                           name="excel_files" 
                                            accept=".xlsx"
+                                           multiple
                                            required>
                                     <span class="input-group-text">
                                         <i data-feather="file" class="text-success"></i>
@@ -77,7 +78,7 @@
                                 </div>
                                 <div class="form-text">
                                     <i data-feather="info" class="me-1"></i>
-                                    Os dados devem estar na linha 4, colunas A, B, D, E, F, G
+                                    Selecione um ou múltiplos arquivos Excel. Os dados devem estar na linha 4, colunas A, B, D, E, F, G
                                 </div>
                             </div>
 

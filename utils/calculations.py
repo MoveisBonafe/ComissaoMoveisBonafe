@@ -246,13 +246,13 @@ class CalculationEngine:
     
     def _format_string(self, value: Any) -> str:
         """
-        Format string value for display with proper capitalization
+        Format string value for display with proper capitalization and character limit
         
         Args:
             value: Value to format
             
         Returns:
-            Formatted string with first letter capitalized after each space
+            Formatted string with first letter capitalized after each space, limited to 37 characters
         """
         try:
             if value is None:
@@ -263,6 +263,10 @@ class CalculationEngine:
             # Convert to title case (first letter of each word capitalized)
             # This will convert "PEDRO HENRIQUE" to "Pedro Henrique"
             formatted_text = text.title()
+            
+            # Limit to 37 characters for column 3 (nome do cliente)
+            if len(formatted_text) > 37:
+                formatted_text = formatted_text[:37]
             
             return formatted_text
         except Exception as e:

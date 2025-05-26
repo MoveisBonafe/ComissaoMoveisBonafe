@@ -32,7 +32,10 @@ class WordProcessor:
             # Replace "ALTERE AQUI" with worksheet name in all paragraphs
             for paragraph in doc.paragraphs:
                 if "ALTERE AQUI" in paragraph.text:
-                    paragraph.text = paragraph.text.replace("ALTERE AQUI", worksheet_name)
+                    # Replace the entire text, preserving formatting
+                    for run in paragraph.runs:
+                        if "ALTERE AQUI" in run.text:
+                            run.text = run.text.replace("ALTERE AQUI", worksheet_name)
                     self.logger.info(f"Replaced 'ALTERE AQUI' with '{worksheet_name}' in document")
             
             # Find the first table in the document

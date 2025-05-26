@@ -38,74 +38,108 @@ def index():
 
 @app.route('/process', methods=['POST'])
 def process_files():
-    """Process uploaded Excel file using fixed Word template"""
+    """Process uploaded Excel files using fixed Word template"""
     try:
-        # Check if Excel file was uploaded
-        if 'excel_file' not in request.files:
-            flash('Arquivo Excel é obrigatório', 'error')
+        # Check if Excel files were uploaded
+        if 'excel_files' not in request.files:
+            flash('Pelo menos um arquivo Excel é obrigatório', 'error')
             return redirect(url_for('index'))
         
-        excel_file = request.files['excel_file']
+        excel_files = request.files.getlist('excel_files')
         
-        # Check if file is selected
-        if excel_file.filename == '':
-            flash('Por favor, selecione o arquivo Excel', 'error')
+        # Check if files are selected
+        if not excel_files or all(file.filename == '' for file in excel_files):
+            flash('Por favor, selecione pelo menos um arquivo Excel', 'error')
             return redirect(url_for('index'))
         
-        # Validate file extension
-        if not allowed_file(excel_file.filename, ALLOWED_EXCEL_EXTENSIONS):
-            flash('O arquivo Excel deve ter extensão .xlsx', 'error')
-            return redirect(url_for('index'))
+        # Validate file extensions
+        for excel_file in excel_files:
+            if excel_file.filename and not allowed_file(excel_file.filename, ALLOWED_EXCEL_EXTENSIONS):
+                flash(f'O arquivo {excel_file.filename} deve ter extensão .xlsx', 'error')
+                return redirect(url_for('index'))
         
         # Create temporary directory for processing
         with tempfile.TemporaryDirectory() as temp_dir:
-            # Save uploaded Excel file
-            excel_filename = secure_filename(excel_file.filename)
-            excel_path = os.path.join(temp_dir, excel_filename)
-            excel_file.save(excel_path)
-            
             # Use fixed Word template from project
             word_template_path = os.path.join('templates_word', 'modelo_padrao.docx')
             
-            # Process Excel file - extract all rows
+            # Initialize processors
             excel_processor = ExcelProcessor()
-            excel_result = excel_processor.extract_data(excel_path)
-            
-            if not excel_result:
-                flash('Erro ao processar arquivo Excel. Verifique se existem dados válidos a partir da linha 4.', 'error')
-                return redirect(url_for('index'))
-            
-            # Extract worksheet name and data
-            worksheet_name = excel_result.get('worksheet_name', 'Planilha')
-            excel_data_list = excel_result.get('data', [])
-            
-            # Perform calculations for each row
             calc_engine = CalculationEngine()
-            calculated_data_list = []
-            
-            for row_data in excel_data_list:
-                calculated_row = calc_engine.process_row(row_data)
-                calculated_data_list.append(calculated_row)
-            
-            # Process Word file with all calculated data and worksheet name
             word_processor = WordProcessor()
-            output_filename = f'resultado_{excel_filename.replace(".xlsx", ".docx")}'
-            output_path = os.path.join(temp_dir, output_filename)
             
-            success = word_processor.fill_template(word_template_path, calculated_data_list, output_path, worksheet_name)
+            processed_files = []
             
-            if not success:
-                flash('Erro ao processar arquivo Word. Verifique se o template possui uma tabela.', 'error')
+            # Process each Excel file
+            for excel_file in excel_files:
+                if not excel_file.filename:
+                    continue
+                    
+                # Save uploaded Excel file
+                excel_filename = secure_filename(excel_file.filename)
+                excel_path = os.path.join(temp_dir, excel_filename)
+                excel_file.save(excel_path)
+                
+                # Process Excel file - extract all rows
+                excel_result = excel_processor.extract_data(excel_path)
+                
+                if not excel_result:
+                    flash(f'Erro ao processar arquivo {excel_filename}. Verifique se o arquivo possui dados nas colunas A, B, D, E, F, G a partir da linha 4.', 'warning')
+                    continue
+                
+                # Get worksheet name and data
+                excel_data_list = excel_result.get('data', [])
+                worksheet_name = excel_result.get('worksheet_name', 'Planilha')
+                
+                # Process all rows with calculations
+                calculated_data_list = []
+                for row_data in excel_data_list:
+                    calculated_row = calc_engine.process_row(row_data)
+                    calculated_data_list.append(calculated_row)
+                
+                # Process Word file with all calculated data and worksheet name
+                output_filename = f'resultado_{excel_filename.replace(".xlsx", ".docx")}'
+                output_path = os.path.join(temp_dir, output_filename)
+                
+                success = word_processor.fill_template(word_template_path, calculated_data_list, output_path, worksheet_name)
+                
+                if success:
+                    # Copy output file to uploads folder
+                    final_output_path = os.path.join(app.config['UPLOAD_FOLDER'], output_filename)
+                    shutil.copy2(output_path, final_output_path)
+                    processed_files.append((output_filename, final_output_path))
+                else:
+                    flash(f'Erro ao processar arquivo Word para {excel_filename}.', 'warning')
+            
+            # Check if any files were processed successfully
+            if not processed_files:
+                flash('Nenhum arquivo foi processado com sucesso.', 'error')
                 return redirect(url_for('index'))
             
-            # Copy output file to uploads folder for download
-            final_output_path = os.path.join(app.config['UPLOAD_FOLDER'], output_filename)
-            shutil.copy2(output_path, final_output_path)
+            # If only one file was processed, download it directly
+            if len(processed_files) == 1:
+                flash('Arquivo processado com sucesso!', 'success')
+                return send_file(processed_files[0][1], 
+                               as_attachment=True, 
+                               download_name=processed_files[0][0])
             
-            flash('Arquivo processado com sucesso!', 'success')
-            return send_file(final_output_path, 
+            # If multiple files were processed, create a ZIP file
+            import zipfile
+            zip_filename = f'resultados_{len(processed_files)}_arquivos.zip'
+            zip_path = os.path.join(temp_dir, zip_filename)
+            
+            with zipfile.ZipFile(zip_path, 'w') as zip_file:
+                for filename, filepath in processed_files:
+                    zip_file.write(filepath, filename)
+            
+            # Copy ZIP to uploads folder
+            final_zip_path = os.path.join(app.config['UPLOAD_FOLDER'], zip_filename)
+            shutil.copy2(zip_path, final_zip_path)
+            
+            flash(f'{len(processed_files)} arquivos processados com sucesso!', 'success')
+            return send_file(final_zip_path, 
                            as_attachment=True, 
-                           download_name=output_filename)
+                           download_name=zip_filename)
     
     except Exception as e:
         app.logger.error(f"Erro durante processamento: {str(e)}")
