@@ -13,7 +13,7 @@ class WordProcessor:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
     
-    def fill_template(self, template_path: str, data_list: List[Dict[str, Any]], output_path: str) -> bool:
+    def fill_template(self, template_path: str, data_list: List[Dict[str, Any]], output_path: str, worksheet_name: str = "Planilha") -> bool:
         """
         Fill Word template with provided data from multiple rows
         
@@ -28,6 +28,12 @@ class WordProcessor:
         try:
             # Load the document
             doc = Document(template_path)
+            
+            # Replace "ALTERE AQUI" with worksheet name in all paragraphs
+            for paragraph in doc.paragraphs:
+                if "ALTERE AQUI" in paragraph.text:
+                    paragraph.text = paragraph.text.replace("ALTERE AQUI", worksheet_name)
+                    self.logger.info(f"Replaced 'ALTERE AQUI' with '{worksheet_name}' in document")
             
             # Find the first table in the document
             if not doc.tables:

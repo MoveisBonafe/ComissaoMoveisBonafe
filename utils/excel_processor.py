@@ -28,6 +28,7 @@ class ExcelProcessor:
             
             # Get the first worksheet
             worksheet = workbook.active
+            worksheet_name = worksheet.title  # Get the worksheet name
             
             all_rows_data = []
             
@@ -59,7 +60,13 @@ class ExcelProcessor:
                 self.logger.warning("No data found in Excel file starting from row 4")
                 return None
             
-            return all_rows_data
+            # Add worksheet name to the data
+            result = {
+                'worksheet_name': worksheet_name,
+                'data': all_rows_data
+            }
+            
+            return result
             
         except Exception as e:
             self.logger.error(f"Error extracting data from Excel file: {str(e)}")

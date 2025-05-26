@@ -38,28 +38,23 @@ def index():
 
 @app.route('/process', methods=['POST'])
 def process_files():
-    """Process uploaded Excel and Word files"""
+    """Process uploaded Excel file using fixed Word template"""
     try:
-        # Check if files were uploaded
-        if 'excel_file' not in request.files or 'word_file' not in request.files:
-            flash('Ambos os arquivos (Excel e Word) são obrigatórios', 'error')
+        # Check if Excel file was uploaded
+        if 'excel_file' not in request.files:
+            flash('Arquivo Excel é obrigatório', 'error')
             return redirect(url_for('index'))
         
         excel_file = request.files['excel_file']
-        word_file = request.files['word_file']
         
-        # Check if files are selected
-        if excel_file.filename == '' or word_file.filename == '':
-            flash('Por favor, selecione ambos os arquivos', 'error')
+        # Check if file is selected
+        if excel_file.filename == '':
+            flash('Por favor, selecione o arquivo Excel', 'error')
             return redirect(url_for('index'))
         
-        # Validate file extensions
+        # Validate file extension
         if not allowed_file(excel_file.filename, ALLOWED_EXCEL_EXTENSIONS):
             flash('O arquivo Excel deve ter extensão .xlsx', 'error')
-            return redirect(url_for('index'))
-        
-        if not allowed_file(word_file.filename, ALLOWED_WORD_EXTENSIONS):
-            flash('O arquivo Word deve ter extensão .docx', 'error')
             return redirect(url_for('index'))
         
         # Create temporary directory for processing
@@ -76,11 +71,15 @@ def process_files():
             
             # Process Excel file - extract all rows
             excel_processor = ExcelProcessor()
-            excel_data_list = excel_processor.extract_data(excel_path)
+            excel_result = excel_processor.extract_data(excel_path)
             
-            if not excel_data_list:
+            if not excel_result:
                 flash('Erro ao processar arquivo Excel. Verifique se existem dados válidos a partir da linha 4.', 'error')
                 return redirect(url_for('index'))
+            
+            # Extract worksheet name and data
+            worksheet_name = excel_result.get('worksheet_name', 'Planilha')
+            excel_data_list = excel_result.get('data', [])
             
             # Perform calculations for each row
             calc_engine = CalculationEngine()
@@ -90,11 +89,11 @@ def process_files():
                 calculated_row = calc_engine.process_row(row_data)
                 calculated_data_list.append(calculated_row)
             
-            # Process Word file with all calculated data
+            # Process Word file with all calculated data and worksheet name
             word_processor = WordProcessor()
             output_path = os.path.join(temp_dir, 'output_' + word_filename)
             
-            success = word_processor.fill_template(word_path, calculated_data_list, output_path)
+            success = word_processor.fill_template(word_path, calculated_data_list, output_path, worksheet_name)
             
             if not success:
                 flash('Erro ao processar arquivo Word. Verifique se o template possui uma tabela.', 'error')
