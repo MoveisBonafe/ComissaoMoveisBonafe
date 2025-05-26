@@ -48,14 +48,14 @@ class WordProcessor:
             # Fill row 2 (index 1) with data
             row = table.rows[1]  # Row 2 (0-indexed)
             
-            # Map data to table columns
-            self._fill_cell(row.cells[0], data.get('data'))           # Column 1 - Data
-            self._fill_cell(row.cells[1], data.get('numero_pedido'))  # Column 2 - Número do Pedido
-            self._fill_cell(row.cells[2], data.get('nome_cliente'))   # Column 3 - Nome do Cliente
-            self._fill_cell(row.cells[3], data.get('prazo'))          # Column 4 - Prazo
-            self._fill_cell(row.cells[4], data.get('valor_pedido'))   # Column 5 - Valor do Pedido
-            self._fill_cell(row.cells[5], data.get('porcentagem'))    # Column 6 - Porcentagem
-            self._fill_cell(row.cells[6], data.get('valor_comissao')) # Column 7 - Valor da Comissão (calculated)
+            # Map data to table columns with specific formatting for each column
+            self._fill_cell(row.cells[0], data.get('data'), 0)           # Column 1 - Data
+            self._fill_cell(row.cells[1], data.get('numero_pedido'), 1)  # Column 2 - Número do Pedido
+            self._fill_cell(row.cells[2], data.get('nome_cliente'), 2)   # Column 3 - Nome do Cliente
+            self._fill_cell(row.cells[3], data.get('prazo'), 3)          # Column 4 - Prazo
+            self._fill_cell(row.cells[4], data.get('valor_pedido'), 4)   # Column 5 - Valor do Pedido
+            self._fill_cell(row.cells[5], data.get('porcentagem'), 5)    # Column 6 - Porcentagem
+            self._fill_cell(row.cells[6], data.get('valor_comissao'), 6) # Column 7 - Valor da Comissão (calculated)
             
             # Save the filled document
             doc.save(output_path)
@@ -67,13 +67,14 @@ class WordProcessor:
             self.logger.error(f"Error filling Word template: {str(e)}")
             return False
     
-    def _fill_cell(self, cell, value: Any) -> None:
+    def _fill_cell(self, cell, value: Any, column_index: int = 0) -> None:
         """
         Fill a table cell with the provided value
         
         Args:
             cell: The table cell object
             value: The value to insert
+            column_index: Index of the column (0-based) for specific formatting
         """
         try:
             # Clear existing content
@@ -81,14 +82,18 @@ class WordProcessor:
             
             # Add new content
             if value is not None:
-                # Format numeric values
+                # Format numeric values based on column
                 if isinstance(value, (int, float)):
-                    # Format currency values
-                    if abs(value) >= 0.01:  # Avoid very small numbers
-                        formatted_value = f"R$ {value:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')
+                    # Columns 4, 5, 6 (indexes 4, 5, 6): remove R$ symbol
+                    if column_index in [4, 5, 6]:  # Valor Pedido, Porcentagem, Valor da Comissão
+                        if column_index == 5:  # Porcentagem column - format as integer
+                            formatted_value = f"{int(value)}"
+                        else:  # Valor Pedido and Valor da Comissão - format with 2 decimals, no R$
+                            formatted_value = f"{value:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')
+                        cell.text = formatted_value
                     else:
-                        formatted_value = f"{value:.4f}"
-                    cell.text = formatted_value
+                        # Other numeric columns - keep default formatting
+                        cell.text = str(value)
                 else:
                     cell.text = str(value)
             else:

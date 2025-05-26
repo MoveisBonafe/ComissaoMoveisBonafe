@@ -70,7 +70,7 @@ class CalculationEngine:
         Rules:
         - No "/" character: value = 0
         - Has "/" character: extract last number after "/"
-          - >30 and <60: value = 2
+          - >30 and <60: value = 4  (updated rule)
           - >=60 and <90: value = 4
           - >=90 and <120: value = 5
           - >=120: value = 7
@@ -79,7 +79,7 @@ class CalculationEngine:
             prazo_str: The prazo string from Excel
             
         Returns:
-            Processed value according to rules
+            Processed value according to rules (negative for calculation)
         """
         try:
             if not prazo_str or '/' not in prazo_str:
@@ -100,15 +100,15 @@ class CalculationEngine:
             # Take the first (or only) number found
             last_number = int(numbers[0])
             
-            # Apply business rules
+            # Apply business rules - return negative values for calculation
             if last_number > 30 and last_number < 60:
-                value = 2
+                value = -4  # Example: 30/60 = -4
             elif last_number >= 60 and last_number < 90:
-                value = 4
+                value = -4
             elif last_number >= 90 and last_number < 120:
-                value = 5
+                value = -5
             elif last_number >= 120:
-                value = 7
+                value = -7
             else:
                 value = 0
             
@@ -124,10 +124,15 @@ class CalculationEngine:
         Calculate commission value using the formula:
         valor_pedido - percentage of (porcentagem + prazo_value)
         
+        Example: valor_pedido=1000, porcentagem=-7, prazo_value=-4 (from 30/60)
+        sum = -7 + (-4) = -11
+        commission = 1000 - (-11% of 1000) = 1000 - (-110) = 1000 + 110 = 1110
+        But since we want subtraction: 1000 - 11% = 890
+        
         Args:
             valor_pedido: Order value
-            porcentagem: Percentage value
-            prazo_value: Processed prazo value
+            porcentagem: Percentage value (negative)
+            prazo_value: Processed prazo value (negative)
             
         Returns:
             Calculated commission value
@@ -136,16 +141,19 @@ class CalculationEngine:
             if valor_pedido <= 0:
                 return 0
             
-            # Sum of porcentagem and prazo_value
-            sum_percentages = porcentagem + prazo_value
+            # Sum of absolute values for percentage calculation
+            # Since both values are negative, we need their absolute sum for the discount
+            abs_porcentagem = abs(porcentagem)
+            abs_prazo = abs(prazo_value)
+            total_discount_percentage = abs_porcentagem + abs_prazo
             
             # Calculate percentage amount to subtract
-            percentage_amount = valor_pedido * (sum_percentages / 100)
+            percentage_amount = valor_pedido * (total_discount_percentage / 100)
             
-            # Calculate final commission
+            # Calculate final commission (subtract the discount)
             commission = valor_pedido - percentage_amount
             
-            self.logger.debug(f"Commission calculation: {valor_pedido} - ({sum_percentages}% of {valor_pedido}) = {commission}")
+            self.logger.debug(f"Commission calculation: {valor_pedido} - ({total_discount_percentage}% of {valor_pedido}) = {commission}")
             
             return max(0, commission)  # Ensure non-negative result
             
@@ -188,25 +196,31 @@ class CalculationEngine:
     
     def _format_date(self, date_value: Any) -> str:
         """
-        Format date value for display
+        Format date value for display in dd/mm format
         
         Args:
             date_value: Date value to format
             
         Returns:
-            Formatted date string
+            Formatted date string in dd/mm format
         """
         try:
             if date_value is None:
                 return ""
             
-            # If already a string, return as-is
+            # If already a string, try to convert to dd/mm format
             if isinstance(date_value, str):
-                return date_value.strip()
+                date_str = date_value.strip()
+                # If it's in dd/mm/yyyy format, extract dd/mm
+                if '/' in date_str:
+                    parts = date_str.split('/')
+                    if len(parts) >= 2:
+                        return f"{parts[0]}/{parts[1]}"
+                return date_str
             
-            # If datetime object, format it
+            # If datetime object, format it to dd/mm
             if hasattr(date_value, 'strftime'):
-                return date_value.strftime('%d/%m/%Y')
+                return date_value.strftime('%d/%m')
             
             return str(date_value)
             
@@ -216,18 +230,25 @@ class CalculationEngine:
     
     def _format_string(self, value: Any) -> str:
         """
-        Format string value for display
+        Format string value for display with proper capitalization
         
         Args:
             value: Value to format
             
         Returns:
-            Formatted string
+            Formatted string with first letter capitalized after each space
         """
         try:
             if value is None:
                 return ""
-            return str(value).strip()
+            
+            text = str(value).strip()
+            
+            # Convert to title case (first letter of each word capitalized)
+            # This will convert "PEDRO HENRIQUE" to "Pedro Henrique"
+            formatted_text = text.title()
+            
+            return formatted_text
         except Exception as e:
             self.logger.warning(f"Error formatting string '{value}': {str(e)}")
             return ""
