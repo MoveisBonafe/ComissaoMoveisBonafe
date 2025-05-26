@@ -295,15 +295,19 @@ class CalculationEngine:
                 # Split by '/' to get parts
                 parts = prazo_str.split('/')
                 
+                # Take first part (index 0) and last part (index -1)
+                first_part = parts[0].strip()
+                last_part = parts[-1].strip()
+                
                 # Extract numbers from first and last parts
-                first_numbers = re.findall(r'\d+', parts[0])
-                last_numbers = re.findall(r'\d+', parts[-1])
+                first_numbers = re.findall(r'\d+', first_part)
+                last_numbers = re.findall(r'\d+', last_part)
                 
                 if first_numbers and last_numbers:
                     first_num = first_numbers[0]
                     last_num = last_numbers[0]
                     formatted = f"{first_num} a {last_num}"
-                    self.logger.debug(f"Formatted prazo '{prazo_str}' (3 slashes) -> '{formatted}'")
+                    self.logger.debug(f"Formatted prazo '{prazo_str}' -> parts: {parts} -> first: '{first_part}' last: '{last_part}' -> '{formatted}'")
                     return formatted
             
             # For other cases (1-2 slashes), return as-is
