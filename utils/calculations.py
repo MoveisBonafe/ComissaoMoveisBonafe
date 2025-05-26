@@ -264,9 +264,9 @@ class CalculationEngine:
             # This will convert "PEDRO HENRIQUE" to "Pedro Henrique"
             formatted_text = text.title()
             
-            # Limit to 37 characters for column 3 (nome do cliente)
-            if len(formatted_text) > 37:
-                formatted_text = formatted_text[:37]
+            # Limit to 35 characters for column 3 (nome do cliente)
+            if len(formatted_text) > 35:
+                formatted_text = formatted_text[:35]
             
             return formatted_text
         except Exception as e:
