@@ -273,8 +273,8 @@ class CalculationEngine:
         Format prazo for display handling multiple slashes
         
         Rules:
-        - If 3+ slashes: show "first a last" (e.g., "30/60/90/120" -> "30 a 120")
-        - If 1-2 slashes: show as-is
+        - If exactly 3 slashes (4 parts): show "first a last" (e.g., "30/60/90/120" -> "30 a 120")
+        - If 1-2 slashes: show as-is (e.g., "30/60/90" stays "30/60/90")
         - If no slash: show as-is
         
         Args:
@@ -287,11 +287,14 @@ class CalculationEngine:
             if not prazo_str or '/' not in prazo_str:
                 return prazo_str
             
-            # Split by '/' and count parts
-            parts = prazo_str.split('/')
+            # Count the number of slashes
+            slash_count = prazo_str.count('/')
             
-            # If 3 or more parts (meaning 2+ slashes), format as "first a last"
-            if len(parts) >= 3:
+            # Only format if there are exactly 3 slashes (4 parts)
+            if slash_count == 3:
+                # Split by '/' to get parts
+                parts = prazo_str.split('/')
+                
                 # Extract numbers from first and last parts
                 first_numbers = re.findall(r'\d+', parts[0])
                 last_numbers = re.findall(r'\d+', parts[-1])
@@ -300,10 +303,11 @@ class CalculationEngine:
                     first_num = first_numbers[0]
                     last_num = last_numbers[0]
                     formatted = f"{first_num} a {last_num}"
-                    self.logger.debug(f"Formatted prazo '{prazo_str}' -> '{formatted}'")
+                    self.logger.debug(f"Formatted prazo '{prazo_str}' (3 slashes) -> '{formatted}'")
                     return formatted
             
-            # For 1-2 slashes or if extraction failed, return as-is
+            # For other cases (1-2 slashes), return as-is
+            self.logger.debug(f"Prazo '{prazo_str}' ({slash_count} slashes) -> keeping as-is")
             return prazo_str
             
         except Exception as e:
