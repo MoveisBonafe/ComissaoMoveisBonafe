@@ -145,9 +145,140 @@
                 background-position: 100% 0;
             }
         }
+        
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 25%, #000000 50%, #2a2a2a 75%, #1a1a1a 100%);
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 215, 0, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(255, 215, 0, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            padding: 0 2rem;
+        }
+        
+        .main-card {
+            backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+        
+        .feature-card {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(26, 26, 26, 0.9));
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--bonafe-gold);
+            box-shadow: 0 20px 40px rgba(255, 215, 0, 0.2);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            color: var(--bonafe-gold);
+            margin-bottom: 1rem;
+        }
+        
+        .stats-section {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(0, 0, 0, 0.8));
+            border-radius: 20px;
+            padding: 3rem;
+            margin: 3rem 0;
+            text-align: center;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .stat-item {
+            color: white;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--bonafe-gold);
+            display: block;
+        }
+        
+        .modern-upload {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(26, 26, 26, 0.8));
+            border: 2px dashed rgba(255, 215, 0, 0.5);
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .modern-upload::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(255, 215, 0, 0.1), transparent);
+            animation: rotate 4s linear infinite;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .modern-upload:hover::before {
+            opacity: 1;
+        }
+        
+        .modern-upload:hover {
+            border-color: var(--bonafe-gold);
+            transform: scale(1.02);
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--bonafe-gold), transparent);
+            margin: 4rem 0;
+            opacity: 0.5;
+        }
     </style>
 </head>
-<body class="bg-gradient">
+<body>
     <div class="container my-5">
         <!-- Header -->
         <div class="row mb-5 animate-fade-in">
@@ -196,10 +327,65 @@
             {% endif %}
         {% endwith %}
 
+        <!-- Features Section -->
+        <div class="feature-grid animate-fade-in" style="animation-delay: 0.2s;">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i data-feather="layers"></i>
+                </div>
+                <h5 class="text-white mb-3">Processamento em Lote</h5>
+                <p class="text-muted">Processe múltiplos arquivos Excel simultaneamente para máxima eficiência</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i data-feather="calculator"></i>
+                </div>
+                <h5 class="text-white mb-3">Cálculos Automáticos</h5>
+                <p class="text-muted">Sistema inteligente calcula comissões baseado em prazos e percentuais</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i data-feather="download-cloud"></i>
+                </div>
+                <h5 class="text-white mb-3">Download Instantâneo</h5>
+                <p class="text-muted">Documentos Word prontos para uso imediato com formatação profissional</p>
+            </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- Stats Section -->
+        <div class="stats-section animate-fade-in" style="animation-delay: 0.4s;">
+            <h3 class="text-white mb-4">
+                <i data-feather="trending-up" class="me-2"></i>
+                Performance do Sistema
+            </h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-number">35</span>
+                    <span>Caracteres máximos por nome</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">∞</span>
+                    <span>Arquivos por processamento</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">16MB</span>
+                    <span>Tamanho máximo por arquivo</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">100%</span>
+                    <span>Automatização</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-divider"></div>
+
         <!-- Upload Form -->
-        <div class="row justify-content-center animate-fade-in" style="animation-delay: 0.3s;">
-            <div class="col-lg-8">
-                <div class="card shadow-lg border-0">
+        <div class="row justify-content-center animate-fade-in" style="animation-delay: 0.6s;">
+            <div class="col-lg-10">
+                <div class="card shadow-lg border-0 main-card">
                     <div class="card-header bg-gradient text-white position-relative overflow-hidden" style="background: linear-gradient(135deg, var(--bonafe-black), var(--bonafe-gold));">
                         <h4 class="card-title mb-0 position-relative">
                             <i data-feather="upload" class="me-2 animate-pulse"></i>
@@ -212,26 +398,62 @@
                     <div class="card-body">
                         <form id="uploadForm" method="POST" action="{{ url_for('process_files') }}" enctype="multipart/form-data">
                             <!-- Excel Files Upload -->
-                            <div class="mb-4">
-                                <label for="excel_files" class="form-label fw-bold">
-                                    <i data-feather="grid" class="me-2"></i>
-                                    Arquivos Excel (.xlsx)
-                                </label>
-                                <div class="input-group">
-                                    <input type="file" 
-                                           class="form-control" 
-                                           id="excel_files" 
-                                           name="excel_files" 
-                                           accept=".xlsx"
-                                           multiple
-                                           required>
-                                    <span class="input-group-text">
-                                        <i data-feather="file" class="text-success"></i>
-                                    </span>
-                                </div>
-                                <div class="form-text">
-                                    <i data-feather="info" class="me-1"></i>
-                                    Selecione um ou múltiplos arquivos Excel. Os dados devem estar na linha 4, colunas A, B, D, E, F, G
+                            <div class="mb-5">
+                                <div class="modern-upload">
+                                    <div class="upload-content position-relative">
+                                        <div class="mb-4">
+                                            <i data-feather="upload-cloud" style="font-size: 4rem; color: var(--bonafe-gold);"></i>
+                                        </div>
+                                        <h5 class="text-white mb-3">
+                                            <i data-feather="grid" class="me-2"></i>
+                                            Arraste seus arquivos Excel aqui
+                                        </h5>
+                                        <p class="text-muted mb-4">ou clique para selecionar arquivos</p>
+                                        
+                                        <input type="file" 
+                                               class="form-control d-none" 
+                                               id="excel_files" 
+                                               name="excel_files" 
+                                               accept=".xlsx"
+                                               multiple
+                                               required>
+                                        
+                                        <button type="button" class="btn btn-outline-warning btn-lg mb-3" onclick="document.getElementById('excel_files').click()">
+                                            <i data-feather="folder" class="me-2"></i>
+                                            Selecionar Arquivos Excel
+                                        </button>
+                                        
+                                        <div class="upload-info mt-4">
+                                            <div class="row text-center">
+                                                <div class="col-md-4">
+                                                    <small class="text-muted">
+                                                        <i data-feather="file-text" class="me-1"></i>
+                                                        Formato: .xlsx
+                                                    </small>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <small class="text-muted">
+                                                        <i data-feather="hard-drive" class="me-1"></i>
+                                                        Máx: 16MB
+                                                    </small>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <small class="text-muted">
+                                                        <i data-feather="layers" class="me-1"></i>
+                                                        Múltiplos arquivos
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div id="file-list" class="mt-4" style="display: none;">
+                                            <h6 class="text-warning mb-3">
+                                                <i data-feather="check-circle" class="me-2"></i>
+                                                Arquivos Selecionados:
+                                            </h6>
+                                            <div id="selected-files" class="text-start"></div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 

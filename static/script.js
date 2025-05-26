@@ -36,9 +36,90 @@ document.addEventListener('DOMContentLoaded', function() {
     // File input change handlers
     if (excelInput) {
         excelInput.addEventListener('change', function() {
-            validateFile(this, ['xlsx']);
-            updateFileInfo(this, 'excel-info');
+            updateFileList(this);
         });
+        
+        // Setup drag and drop for modern upload area
+        const uploadArea = document.querySelector('.modern-upload');
+        if (uploadArea) {
+            setupModernDragDrop(uploadArea, excelInput);
+        }
+    }
+    
+    // Update file list display
+    function updateFileList(input) {
+        const fileList = document.getElementById('file-list');
+        const selectedFiles = document.getElementById('selected-files');
+        
+        if (input.files.length > 0) {
+            fileList.style.display = 'block';
+            selectedFiles.innerHTML = '';
+            
+            Array.from(input.files).forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item d-flex justify-content-between align-items-center p-2 mb-2 rounded';
+                fileItem.style.background = 'rgba(255, 215, 0, 0.1)';
+                fileItem.style.border = '1px solid rgba(255, 215, 0, 0.3)';
+                
+                const fileSize = (file.size / 1024 / 1024).toFixed(2);
+                fileItem.innerHTML = `
+                    <div>
+                        <i data-feather="file-text" class="me-2 text-warning"></i>
+                        <span class="text-white">${file.name}</span>
+                        <small class="text-muted ms-2">(${fileSize} MB)</small>
+                    </div>
+                    <i data-feather="check-circle" class="text-success"></i>
+                `;
+                
+                selectedFiles.appendChild(fileItem);
+            });
+            
+            feather.replace();
+        } else {
+            fileList.style.display = 'none';
+        }
+    }
+    
+    // Modern drag and drop setup
+    function setupModernDragDrop(area, input) {
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            area.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            area.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            area.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight(e) {
+            area.style.borderColor = 'var(--bonafe-gold)';
+            area.style.transform = 'scale(1.02)';
+        }
+        
+        function unhighlight(e) {
+            area.style.borderColor = 'rgba(255, 215, 0, 0.5)';
+            area.style.transform = 'scale(1)';
+        }
+        
+        area.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+                input.files = files;
+                updateFileList(input);
+            }
+        }
     }
     
     // Update file information display
