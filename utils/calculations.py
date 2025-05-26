@@ -40,8 +40,9 @@ class CalculationEngine:
             frete_value = abs(frete_raw) * 100
             
             # Calculate referencia_comissao (column 9 in Word)
-            # This is valor_comissao * frete_value
-            referencia_comissao = valor_comissao * frete_value
+            # This is frete_value% of valor_comissao
+            # Example: if valor_comissao=1000 and frete_value=5, then 5% of 1000 = 50
+            referencia_comissao = valor_comissao * (frete_value / 100)
             
             # Format prazo for display (handle multiple slashes)
             prazo_formatted = self._format_prazo_display(str(data.get('prazo', '')).strip())
