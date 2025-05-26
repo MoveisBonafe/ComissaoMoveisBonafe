@@ -4,6 +4,7 @@ Word document processing utilities for filling templates with data
 
 import logging
 from docx import Document
+from docx.shared import Pt
 from typing import Dict, Any, List
 
 class WordProcessor:
@@ -12,13 +13,13 @@ class WordProcessor:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
     
-    def fill_template(self, template_path: str, data: Dict[str, Any], output_path: str) -> bool:
+    def fill_template(self, template_path: str, data_list: List[Dict[str, Any]], output_path: str) -> bool:
         """
-        Fill Word template with provided data
+        Fill Word template with provided data from multiple rows
         
         Args:
             template_path: Path to the Word template file
-            data: Dictionary containing the data to fill
+            data_list: List of dictionaries containing the data to fill
             output_path: Path where the filled document will be saved
             
         Returns:
@@ -40,27 +41,42 @@ class WordProcessor:
                 self.logger.error("Table must have at least 2 rows")
                 return False
             
-            # Ensure table has at least 7 columns
-            if len(table.columns) < 7:
-                self.logger.error("Table must have at least 7 columns")
+            # Ensure table has at least 11 columns (updated for new columns)
+            if len(table.columns) < 11:
+                self.logger.error("Table must have at least 11 columns")
                 return False
             
-            # Fill row 2 (index 1) with data
-            row = table.rows[1]  # Row 2 (0-indexed)
-            
-            # Map data to table columns with specific formatting for each column
-            self._fill_cell(row.cells[0], data.get('data'), 0)           # Column 1 - Data
-            self._fill_cell(row.cells[1], data.get('numero_pedido'), 1)  # Column 2 - Número do Pedido
-            self._fill_cell(row.cells[2], data.get('nome_cliente'), 2)   # Column 3 - Nome do Cliente
-            self._fill_cell(row.cells[3], data.get('prazo'), 3)          # Column 4 - Prazo
-            self._fill_cell(row.cells[4], data.get('valor_pedido'), 4)   # Column 5 - Valor do Pedido
-            self._fill_cell(row.cells[5], data.get('porcentagem'), 5)    # Column 6 - Porcentagem
-            self._fill_cell(row.cells[6], data.get('valor_comissao'), 6) # Column 7 - Valor da Comissão (calculated)
+            # Process each row of data
+            for i, data in enumerate(data_list):
+                # Calculate which row to fill (starting from row 2, index 1)
+                row_index = i + 1
+                
+                # Add more rows if needed
+                while len(table.rows) <= row_index:
+                    table.add_row()
+                
+                row = table.rows[row_index]
+                
+                # Map data to table columns with specific formatting and font sizes
+                self._fill_cell(row.cells[0], data.get('data'), 0)                    # Column 1 - Data (font 8)
+                self._fill_cell(row.cells[1], data.get('numero_pedido'), 1)           # Column 2 - Número do Pedido (font 8)
+                self._fill_cell(row.cells[2], data.get('nome_cliente'), 2)            # Column 3 - Nome do Cliente (font 9)
+                self._fill_cell(row.cells[3], data.get('prazo'), 3)                   # Column 4 - Prazo (font 8)
+                self._fill_cell(row.cells[4], data.get('valor_pedido'), 4)            # Column 5 - Valor do Pedido (font 9)
+                self._fill_cell(row.cells[5], data.get('porcentagem'), 5)             # Column 6 - Porcentagem (font 8)
+                self._fill_cell(row.cells[6], data.get('valor_comissao'), 6)          # Column 7 - Valor da Comissão (font 9)
+                self._fill_cell(row.cells[7], data.get('frete'), 7)                   # Column 8 - Frete (font 8)
+                self._fill_cell(row.cells[8], data.get('referencia_comissao'), 8)     # Column 9 - Referência Comissão (font 9)
+                self._fill_cell(row.cells[9], data.get('pagamento'), 9)               # Column 10 - Pagamento (font 8)
+                
+                # Column 11 can be left empty or filled with additional data if available
+                if len(row.cells) > 10:
+                    self._fill_cell(row.cells[10], "", 10)                            # Column 11 - Empty (font 8)
             
             # Save the filled document
             doc.save(output_path)
             
-            self.logger.info(f"Successfully filled template and saved to {output_path}")
+            self.logger.info(f"Successfully filled template with {len(data_list)} rows and saved to {output_path}")
             return True
             
         except Exception as e:
@@ -69,7 +85,7 @@ class WordProcessor:
     
     def _fill_cell(self, cell, value: Any, column_index: int = 0) -> None:
         """
-        Fill a table cell with the provided value
+        Fill a table cell with the provided value and set font size
         
         Args:
             cell: The table cell object
@@ -84,11 +100,13 @@ class WordProcessor:
             if value is not None:
                 # Format numeric values based on column
                 if isinstance(value, (int, float)):
-                    # Columns 4, 5, 6 (indexes 4, 5, 6): remove R$ symbol
-                    if column_index in [4, 5, 6]:  # Valor Pedido, Porcentagem, Valor da Comissão
+                    # Columns with no R$ symbol: 4,5,6,7,8 (valor_pedido, porcentagem, valor_comissao, frete, referencia_comissao)
+                    if column_index in [4, 5, 6, 7, 8]:
                         if column_index == 5:  # Porcentagem column - format as integer
                             formatted_value = f"{int(value)}"
-                        else:  # Valor Pedido and Valor da Comissão - format with 2 decimals, no R$
+                        elif column_index == 7:  # Frete column - format as integer (no % symbol)
+                            formatted_value = f"{int(value)}"
+                        else:  # Other numeric columns - format with 2 decimals, no R$
                             formatted_value = f"{value:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')
                         cell.text = formatted_value
                     else:
@@ -98,7 +116,24 @@ class WordProcessor:
                     cell.text = str(value)
             else:
                 cell.text = ""
-                
+            
+            # Set font size based on column
+            # Columns 1,2,4,6,8,10,11 (indexes 0,1,3,5,7,9,10) = font 8
+            # Columns 3,5,7,9 (indexes 2,4,6,8) = font 9
+            if column_index in [0, 1, 3, 5, 7, 9, 10]:  # Font size 8
+                font_size = 8
+            else:  # Font size 9 for columns 2,4,6,8 (indexes 2,4,6,8)
+                font_size = 9
+            
+            # Apply font size to all paragraphs and runs in the cell
+            for paragraph in cell.paragraphs:
+                for run in paragraph.runs:
+                    run.font.size = Pt(font_size)
+                # If no runs exist, create one with the font size
+                if not paragraph.runs and paragraph.text:
+                    run = paragraph.runs[0] if paragraph.runs else paragraph.add_run(paragraph.text)
+                    run.font.size = Pt(font_size)
+                    
         except Exception as e:
             self.logger.warning(f"Error filling cell: {str(e)}")
             cell.text = str(value) if value is not None else ""

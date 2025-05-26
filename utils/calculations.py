@@ -34,6 +34,14 @@ class CalculationEngine:
             # Calculate commission
             valor_comissao = self._calculate_commission(valor_pedido, porcentagem, prazo_value)
             
+            # Process frete value (column I from Excel, becomes column 8 in Word)
+            frete_raw = self._to_float(data.get('frete', 0))
+            frete_value = abs(frete_raw)  # Remove % symbol and make positive
+            
+            # Calculate referencia_comissao (column 9 in Word)
+            # This is valor_comissao * frete_value
+            referencia_comissao = valor_comissao * frete_value
+            
             # Prepare processed data
             processed_data = {
                 'data': self._format_date(data.get('data')),
@@ -43,6 +51,9 @@ class CalculationEngine:
                 'valor_pedido': valor_pedido,
                 'porcentagem': porcentagem,
                 'valor_comissao': valor_comissao,
+                'frete': frete_value,  # Column 8 - without % symbol
+                'referencia_comissao': referencia_comissao,  # Column 9 - calculated
+                'pagamento': 'BOLETOS',  # Column 10 - fixed text
                 'prazo_processed_value': prazo_value  # For debugging
             }
             

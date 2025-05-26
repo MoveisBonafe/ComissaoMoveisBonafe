@@ -74,23 +74,27 @@ def process_files():
             excel_file.save(excel_path)
             word_file.save(word_path)
             
-            # Process Excel file
+            # Process Excel file - extract all rows
             excel_processor = ExcelProcessor()
-            excel_data = excel_processor.extract_data(excel_path)
+            excel_data_list = excel_processor.extract_data(excel_path)
             
-            if not excel_data:
-                flash('Erro ao processar arquivo Excel. Verifique se os dados estão na linha 4.', 'error')
+            if not excel_data_list:
+                flash('Erro ao processar arquivo Excel. Verifique se existem dados válidos a partir da linha 4.', 'error')
                 return redirect(url_for('index'))
             
-            # Perform calculations
+            # Perform calculations for each row
             calc_engine = CalculationEngine()
-            calculated_data = calc_engine.process_row(excel_data)
+            calculated_data_list = []
             
-            # Process Word file
+            for row_data in excel_data_list:
+                calculated_row = calc_engine.process_row(row_data)
+                calculated_data_list.append(calculated_row)
+            
+            # Process Word file with all calculated data
             word_processor = WordProcessor()
             output_path = os.path.join(temp_dir, 'output_' + word_filename)
             
-            success = word_processor.fill_template(word_path, calculated_data, output_path)
+            success = word_processor.fill_template(word_path, calculated_data_list, output_path)
             
             if not success:
                 flash('Erro ao processar arquivo Word. Verifique se o template possui uma tabela.', 'error')
