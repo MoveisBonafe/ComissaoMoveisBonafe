@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processador de Planilhas e Templates Word</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container my-5">
+        <!-- Header -->
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h1 class="display-4 mb-3">
+                    <i data-feather="file-text" class="me-3"></i>
+                    Processador de Templates
+                </h1>
+                <p class="lead text-muted">
+                    Preencha templates Word automaticamente com dados de planilhas Excel
+                </p>
+            </div>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="row mb-4">
+                    <div class="col-12">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                                <i data-feather="{{ 'alert-circle' if category == 'error' else 'check-circle' }}" class="me-2"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Upload Form -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="card-title mb-0">
+                            <i data-feather="upload" class="me-2"></i>
+                            Upload de Arquivos
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="uploadForm" method="POST" action="{{ url_for('process_files') }}" enctype="multipart/form-data">
+                            <!-- Excel File Upload -->
+                            <div class="mb-4">
+                                <label for="excel_file" class="form-label fw-bold">
+                                    <i data-feather="grid" class="me-2"></i>
+                                    Arquivo Excel (.xlsx)
+                                </label>
+                                <div class="input-group">
+                                    <input type="file" 
+                                           class="form-control" 
+                                           id="excel_file" 
+                                           name="excel_file" 
+                                           accept=".xlsx"
+                                           required>
+                                    <span class="input-group-text">
+                                        <i data-feather="file" class="text-success"></i>
+                                    </span>
+                                </div>
+                                <div class="form-text">
+                                    <i data-feather="info" class="me-1"></i>
+                                    Os dados devem estar na linha 4, colunas A, B, D, E, F, G
+                                </div>
+                            </div>
+
+                            <!-- Word File Upload -->
+                            <div class="mb-4">
+                                <label for="word_file" class="form-label fw-bold">
+                                    <i data-feather="file-text" class="me-2"></i>
+                                    Template Word (.docx)
+                                </label>
+                                <div class="input-group">
+                                    <input type="file" 
+                                           class="form-control" 
+                                           id="word_file" 
+                                           name="word_file" 
+                                           accept=".docx"
+                                           required>
+                                    <span class="input-group-text">
+                                        <i data-feather="file-text" class="text-info"></i>
+                                    </span>
+                                </div>
+                                <div class="form-text">
+                                    <i data-feather="info" class="me-1"></i>
+                                    O template deve conter uma tabela que será preenchida automaticamente
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                                    <i data-feather="play" class="me-2"></i>
+                                    Processar Arquivos
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i data-feather="help-circle" class="me-2"></i>
+                            Como Usar
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="fw-bold text-primary">
+                                    <i data-feather="grid" class="me-2"></i>
+                                    Arquivo Excel
+                                </h6>
+                                <ul class="list-unstyled">
+                                    <li><i data-feather="arrow-right" class="me-2 text-muted"></i>Dados na linha 4</li>
+                                    <li><i data-feather="arrow-right" class="me-2 text-muted"></i>Coluna A: Data</li>
+                                    <li><i data-feather="arrow-right" class="me-2 text-muted"></i>Coluna B: Número do Pedido</li>
+                                    <li><i data-feather="arrow-right" class="me-2 text-muted"></i>Coluna D: Nome do Cliente</li>
+                                    <li><i data-feather="arrow-right" class="me-2 text-muted"></i>Coluna E: Prazo (formato: xx ou xx/ ou xx/xx/xx)</li>
+                                    <li><i data-feather="arrow-right" class="me-2 text-muted"></i>Coluna F: Valor do Pedido</li>
+                                    <li><i data-feather="arrow-right" class="me-2 text-muted"></i>Coluna G: Porcentagem</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="fw-bold text-info">
+                                    <i data-feather="file-text" class="me-2"></i>
+                                    Template Word
+                                </h6>
+                                <ul class="list-unstyled">
+                                    <li><i data-feather="arrow-right" class="me-2 text-muted"></i>Deve conter uma tabela</li>
+                                    <li><i data-feather="arrow-right" class="me-2 text-muted"></i>Os dados serão inseridos na linha 2</li>
+                                    <li><i data-feather="arrow-right" class="me-2 text-muted"></i>Colunas 1-6: dados diretos do Excel</li>
+                                    <li><i data-feather="arrow-right" class="me-2 text-muted"></i>Coluna 7: cálculo automático</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 p-3 bg-light rounded">
+                            <h6 class="fw-bold text-warning mb-2">
+                                <i data-feather="calculator" class="me-2"></i>
+                                Cálculo Automático (Coluna 7)
+                            </h6>
+                            <p class="mb-2">
+                                <strong>Fórmula:</strong> Valor do Pedido - porcentagem da soma (Porcentagem + Valor do Prazo)
+                            </p>
+                            <p class="mb-0 text-muted">
+                                <strong>Regras para Prazo:</strong> 
+                                Sem "/" = 0 | >30 e <60 = 2 | ≥60 e <90 = 4 | ≥90 e <120 = 5 | ≥120 = 7
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    
+    <!-- Initialize Feather Icons -->
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>
