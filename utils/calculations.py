@@ -36,18 +36,22 @@ class CalculationEngine:
             
             # Process frete value (column I from Excel, becomes column 8 in Word)
             frete_raw = self._to_float(data.get('frete', 0))
-            frete_value = abs(frete_raw)  # Remove % symbol and make positive
+            # Convert from decimal to percentage (0.05 -> 5)
+            frete_value = abs(frete_raw) * 100
             
             # Calculate referencia_comissao (column 9 in Word)
             # This is valor_comissao * frete_value
             referencia_comissao = valor_comissao * frete_value
+            
+            # Format prazo for display (handle multiple slashes)
+            prazo_formatted = self._format_prazo_display(str(data.get('prazo', '')).strip())
             
             # Prepare processed data
             processed_data = {
                 'data': self._format_date(data.get('data')),
                 'numero_pedido': self._format_string(data.get('numero_pedido')),
                 'nome_cliente': self._format_string(data.get('nome_cliente')),
-                'prazo': self._format_string(data.get('prazo')),
+                'prazo': prazo_formatted,
                 'valor_pedido': valor_pedido,
                 'porcentagem': porcentagem,
                 'valor_comissao': valor_comissao,
@@ -263,6 +267,48 @@ class CalculationEngine:
         except Exception as e:
             self.logger.warning(f"Error formatting string '{value}': {str(e)}")
             return ""
+    
+    def _format_prazo_display(self, prazo_str: str) -> str:
+        """
+        Format prazo for display handling multiple slashes
+        
+        Rules:
+        - If 3+ slashes: show "first a last" (e.g., "30/60/90/120" -> "30 a 120")
+        - If 1-2 slashes: show as-is
+        - If no slash: show as-is
+        
+        Args:
+            prazo_str: The prazo string from Excel
+            
+        Returns:
+            Formatted prazo string for display
+        """
+        try:
+            if not prazo_str or '/' not in prazo_str:
+                return prazo_str
+            
+            # Split by '/' and count parts
+            parts = prazo_str.split('/')
+            
+            # If 3 or more parts (meaning 2+ slashes), format as "first a last"
+            if len(parts) >= 3:
+                # Extract numbers from first and last parts
+                first_numbers = re.findall(r'\d+', parts[0])
+                last_numbers = re.findall(r'\d+', parts[-1])
+                
+                if first_numbers and last_numbers:
+                    first_num = first_numbers[0]
+                    last_num = last_numbers[0]
+                    formatted = f"{first_num} a {last_num}"
+                    self.logger.debug(f"Formatted prazo '{prazo_str}' -> '{formatted}'")
+                    return formatted
+            
+            # For 1-2 slashes or if extraction failed, return as-is
+            return prazo_str
+            
+        except Exception as e:
+            self.logger.warning(f"Error formatting prazo display '{prazo_str}': {str(e)}")
+            return prazo_str
     
     def validate_data(self, data: Dict[str, Any]) -> bool:
         """
