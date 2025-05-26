@@ -58,8 +58,11 @@ class WordProcessor:
                 row = table.rows[row_index]
                 
                 # Map data to table columns with specific formatting and font sizes
+                # Column 2 has 40 character limit
+                numero_pedido = str(data.get('numero_pedido', '')).strip()[:40]
+                
                 self._fill_cell(row.cells[0], data.get('data'), 0)                    # Column 1 - Data (font 8)
-                self._fill_cell(row.cells[1], data.get('numero_pedido'), 1)           # Column 2 - Número do Pedido (font 8)
+                self._fill_cell(row.cells[1], numero_pedido, 1)                       # Column 2 - Número do Pedido (font 8, max 40 chars)
                 self._fill_cell(row.cells[2], data.get('nome_cliente'), 2)            # Column 3 - Nome do Cliente (font 9)
                 self._fill_cell(row.cells[3], data.get('prazo'), 3)                   # Column 4 - Prazo (font 8)
                 self._fill_cell(row.cells[4], data.get('valor_pedido'), 4)            # Column 5 - Valor do Pedido (font 9)
