@@ -3,8 +3,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('uploadForm');
     const submitBtn = document.getElementById('submitBtn');
-    const excelInput = document.getElementById('excel_file');
-    const wordInput = document.getElementById('word_file');
+    const excelInput = document.getElementById('excel_files');
     
     // Create progress indicator
     const progressIndicator = document.createElement('div');
@@ -35,15 +34,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // File input change handlers
-    excelInput.addEventListener('change', function() {
-        validateFile(this, ['xlsx']);
-        updateFileInfo(this, 'excel-info');
-    });
-    
-    wordInput.addEventListener('change', function() {
-        validateFile(this, ['docx']);
-        updateFileInfo(this, 'word-info');
-    });
+    if (excelInput) {
+        excelInput.addEventListener('change', function() {
+            validateFile(this, ['xlsx']);
+            updateFileInfo(this, 'excel-info');
+        });
+    }
     
     // Update file information display
     function updateFileInfo(input, infoId) {
