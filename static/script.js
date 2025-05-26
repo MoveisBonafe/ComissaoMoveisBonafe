@@ -70,9 +70,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form submission handler
     form.addEventListener('submit', function(e) {
         // Validate form
-        if (!excelInput.files[0] || !wordInput.files[0]) {
+        if (!excelInput.files || excelInput.files.length === 0) {
             e.preventDefault();
-            showAlert('Por favor, selecione ambos os arquivos antes de continuar.', 'error');
+            showAlert('Por favor, selecione pelo menos um arquivo Excel antes de continuar.', 'error');
             return;
         }
         
@@ -175,8 +175,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Setup drag and drop for file inputs
-    setupDragAndDrop(excelInput);
-    setupDragAndDrop(wordInput);
+    if (excelInput) {
+        setupDragAndDrop(excelInput);
+    }
     
     // Auto-dismiss alerts after page load
     setTimeout(() => {
@@ -205,8 +206,8 @@ function formatFileSize(bytes) {
 // Handle window beforeunload to warn about unsaved changes
 window.addEventListener('beforeunload', function(e) {
     const form = document.getElementById('uploadForm');
-    const hasFiles = document.getElementById('excel_file').files.length > 0 || 
-                    document.getElementById('word_file').files.length > 0;
+    const excelFiles = document.getElementById('excel_files');
+    const hasFiles = excelFiles && excelFiles.files.length > 0;
     
     if (hasFiles && !form.submitted) {
         e.preventDefault();
