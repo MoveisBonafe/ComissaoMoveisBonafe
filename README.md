@@ -2,24 +2,23 @@
 
 Sistema automatizado para processamento de planilhas Excel e geração de documentos Word de comissão.
 
-## Deploy no Railway
+## Deploy em Plataformas
 
-### Passo 1: Preparar o Repositório
-1. Faça commit de todos os arquivos no seu repositório Git
-2. Certifique-se que os arquivos `Procfile` e `railway.json` estão incluídos
-
-### Passo 2: Deploy no Railway
+### Railway (Recomendado)
 1. Acesse [railway.app](https://railway.app)
-2. Clique em "Start a New Project"
-3. Conecte sua conta GitHub
-4. Selecione "Deploy from GitHub repo"
-5. Escolha este repositório
-6. Railway detectará automaticamente que é uma aplicação Python/Flask
+2. Login com GitHub
+3. "New Project" → "Deploy from GitHub repo"
+4. Selecione este repositório
+5. Deploy automático com `railway.json`
 
-### Passo 3: Configuração
-- Railway irá automaticamente instalar as dependências
-- A aplicação estará disponível em uma URL `.railway.app`
-- Sem necessidade de configurações adicionais
+### Render (Alternativa)
+1. Acesse [render.com](https://render.com)
+2. Login com GitHub  
+3. "New Web Service"
+4. Selecione este repositório
+5. Configure:
+   - **Build Command:** `pip install -r requirements-render.txt`
+   - **Start Command:** `gunicorn --bind 0.0.0.0:$PORT main:app`
 
 ### Recursos do Sistema
 - ✅ Processamento em lote de múltiplos arquivos Excel
